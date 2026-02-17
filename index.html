@@ -168,26 +168,36 @@
         ]).map((o, idx) => ({ ...o, label: 'ABCD'[idx] }));
 
         const scaleCandidates = [10, 100, 1000];
-        const preferredScale = scaleCandidates
-          .map(s => {
-            const target = k / s;
-            const avg = (A / s + B / s + target) / 3;
-            const inRangePenalty = (target < 1 || target > 10) ? 100 : 0;
-            const score = inRangePenalty + Math.abs(avg - 5.5);
-            return { s, score };
-          })
-          .sort((x, y) => x.score - y.score)[0].s;
+        const strategies = [
+          ...scaleCandidates.map(s => ({ op: 'divide', s })),
+          ...scaleCandidates.map(s => ({ op: 'multiply', s }))
+        ];
 
-        const s = preferredScale;
-        const scaledA = A / s;
-        const scaledB = B / s;
-        const targetScaled = k / s;
+        const chosen = strategies
+          .map(st => {
+            const f = st.op === 'divide' ? (v) => v / st.s : (v) => v * st.s;
+            const tScaled = f(k);
+            const aScaled = f(A);
+            const bScaled = f(B);
+            const avg = (aScaled + bScaled + tScaled) / 3;
+            const inRangePenalty = (tScaled < 1 || tScaled > 10) ? 100 : 0;
+            const score = inRangePenalty + Math.abs(avg - 5.5);
+            return { ...st, score, aScaled, bScaled, tScaled };
+          })
+          .sort((x, y) => x.score - y.score)[0];
+
+        const actionText = chosen.op === 'divide' ? `除 ${chosen.s}` : `乘 ${chosen.s}`;
+        const scaledA = chosen.aScaled;
+        const scaledB = chosen.bScaled;
+        const targetScaled = chosen.tScaled;
+        const transform = (v) => chosen.op === 'divide' ? v / chosen.s : v * chosen.s;
+
         const compareLines = options.map(o => {
           if (o.exp == null) return `${o.label}: 不是同底 ${pack.base} 的標準形式，先排除。`;
-          return `${o.label}: ${pack.base}<sup>${o.exp}</sup> → 除 ${s} 後 ${pack.base}<sup>${(o.exp / s).toFixed(2)}</sup>`;
+          return `${o.label}: ${pack.base}<sup>${o.exp}</sup> → ${actionText} 後 ${pack.base}<sup>${transform(o.exp).toFixed(2)}</sup>`;
         });
 
-        const substituteMethod = `【次方等比例縮放法】<br>先在 10、100、1000 中選最適合縮放值（優先令次方落在易比較區間），本題選 ${s}。<br>把全部次方同除 ${s}（比例不變）：<br>原式 ${pack.a}<sup>${A}</sup>·${pack.b}<sup>${B}</sup> → ${pack.a}<sup>${scaledA}</sup>·${pack.b}<sup>${scaledB}</sup> = ${pack.base}<sup>${targetScaled}</sup>。<br>再把選項次方同除 ${s} 比較最吻合者。<br>${compareLines.join('<br>')}`;
+        const substituteMethod = `【次方等比例縮放法】<br>先判斷次方大小，從「除/乘 10、100、1000」揀最易比較方案；本題選「${actionText}」。<br>把全部次方同時 ${actionText}（比例不變）：<br>原式 ${pack.a}<sup>${A}</sup>·${pack.b}<sup>${B}</sup> → ${pack.a}<sup>${scaledA}</sup>·${pack.b}<sup>${scaledB}</sup> = ${pack.base}<sup>${targetScaled}</sup>。<br>再把選項次方做同樣處理，比較最吻合者。<br>${compareLines.join('<br>')}`;
 
         const algebraMethod = `【代數技巧】\n${pack.a}=2<sup>${pack.pa}</sup>，${pack.b}=5<sup>${pack.pb}</sup>。\n原式 = 2<sup>${pack.pa * A}</sup>·5<sup>${pack.pb * B}</sup>。\n依題目構造可合併成 (2·5)<sup>${k}</sup> = ${pack.base}<sup>${k}</sup>。`;
 
