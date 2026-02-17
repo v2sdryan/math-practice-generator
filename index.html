@@ -17,7 +17,16 @@
       button.secondary { background:#334155; color:#e5e7eb; }
       .q { border:1px solid #334155; border-radius:12px; padding:12px; margin:10px 0; background:#0f172a; }
       .q h3 { margin:0 0 10px; font-size:17px; }
-      .opt { display:block; margin:6px 0; }
+      .opt { display:flex; align-items:flex-start; gap:10px; margin:8px 0; }
+      .opt input { width:auto; margin-top:2px; }
+      .opt .opt-text { display:block; white-space:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; font-size:15px; }
+      .controls { display:grid; grid-template-columns: 1fr auto auto auto; gap:10px; align-items:center; }
+      .controls input { width:100%; min-width:90px; }
+      @media (max-width: 700px) {
+        .controls { grid-template-columns: 1fr 1fr; }
+        .controls .full { grid-column: 1 / -1; }
+        button { padding:10px 8px; font-size:14px; }
+      }
       .result { margin-top:8px; padding:8px; border-radius:8px; font-size:14px; }
       .ok { background:#052e16; color:#86efac; }
       .bad { background:#3f1d1d; color:#fca5a5; }
@@ -31,12 +40,12 @@
       <section class="card sticky">
         <h1>同類題練習：平方差因式分解（MC）</h1>
         <p class="muted">題型固定為你提供的類型：<code>a² - (bm+cn)²</code>。可生成 1-100 題，多項選擇作答。交卷後，答錯題目會顯示計算方法。</p>
-        <div class="row">
-          <label>題數（1-100）：</label>
-          <input id="count" type="number" min="1" max="100" value="10" />
+        <div class="controls">
+          <input id="count" type="number" min="1" max="100" value="10" aria-label="題數（1-100）" />
           <button id="genBtn">生成題目</button>
           <button id="submitBtn" class="secondary">交卷批改</button>
           <button id="resetBtn" class="secondary">清除結果</button>
+          <div class="muted full">題數（1-100）</div>
         </div>
         <p id="summary" class="summary"></p>
       </section>
@@ -102,7 +111,8 @@
             <h3>${q.id}. 因式分解：${q.expr}</h3>
             ${q.options.map(opt => `
               <label class="opt">
-                <input type="radio" name="q-${q.id}" value="${opt.label}"> ${opt.label}. ${opt.text}
+                <input type="radio" name="q-${q.id}" value="${opt.label}">
+                <span class="opt-text">${opt.label}. ${opt.text}</span>
               </label>
             `).join('')}
             <div id="result-${q.id}" class="result hide"></div>
