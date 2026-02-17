@@ -21,9 +21,12 @@
       .controls { display:grid; grid-template-columns: 1.2fr .8fr auto auto auto; gap:10px; align-items:center; }
       .controls input,.controls select { width:100%; min-width:90px; }
       @media (max-width: 700px) {
-        .controls { grid-template-columns: 1fr 1fr; }
+        .controls { grid-template-columns: 1fr; }
         .controls .full { grid-column: 1 / -1; }
-        button { padding:10px 8px; font-size:14px; }
+        .controls select,
+        .controls input,
+        .controls button { width: 100%; min-height: 44px; }
+        button { padding:10px 12px; font-size:15px; }
       }
       .result { margin-top:8px; padding:8px; border-radius:8px; font-size:14px; white-space:pre-wrap; }
       .ok { background:#052e16; color:#86efac; }
