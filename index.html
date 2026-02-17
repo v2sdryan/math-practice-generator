@@ -3,16 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>因式分解 MC 練習器</title>
+    <title>數學 MC 練習器</title>
     <style>
       body { margin: 0; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",sans-serif; background:#0b1020; color:#e5e7eb; }
       .wrap { max-width: 980px; margin: 24px auto; padding: 16px; }
       .card { background:#121933; border:1px solid #243050; border-radius:14px; padding:16px; margin-bottom:14px; }
       h1 { margin:0 0 8px; }
       .muted { color:#9ca3af; font-size:14px; }
-      .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-      input, button { border-radius:10px; border:1px solid #334155; background:#0f172a; color:#e5e7eb; padding:10px; }
-      input { width:120px; }
+      input, button, select { border-radius:10px; border:1px solid #334155; background:#0f172a; color:#e5e7eb; padding:10px; }
       button { cursor:pointer; border:none; background:#22c55e; color:#052e16; font-weight:700; }
       button.secondary { background:#334155; color:#e5e7eb; }
       .q { border:1px solid #334155; border-radius:12px; padding:12px; margin:10px 0; background:#0f172a; }
@@ -20,14 +18,14 @@
       .opt { display:flex; align-items:flex-start; gap:10px; margin:8px 0; }
       .opt input { width:auto; margin-top:2px; }
       .opt .opt-text { display:block; white-space:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; font-size:15px; }
-      .controls { display:grid; grid-template-columns: 1fr auto auto auto; gap:10px; align-items:center; }
-      .controls input { width:100%; min-width:90px; }
+      .controls { display:grid; grid-template-columns: 1.2fr .8fr auto auto auto; gap:10px; align-items:center; }
+      .controls input,.controls select { width:100%; min-width:90px; }
       @media (max-width: 700px) {
         .controls { grid-template-columns: 1fr 1fr; }
         .controls .full { grid-column: 1 / -1; }
         button { padding:10px 8px; font-size:14px; }
       }
-      .result { margin-top:8px; padding:8px; border-radius:8px; font-size:14px; }
+      .result { margin-top:8px; padding:8px; border-radius:8px; font-size:14px; white-space:pre-wrap; }
       .ok { background:#052e16; color:#86efac; }
       .bad { background:#3f1d1d; color:#fca5a5; }
       .hide { display:none; }
@@ -38,9 +36,13 @@
   <body>
     <main class="wrap">
       <section class="card sticky">
-        <h1>同類題練習：平方差因式分解（MC）</h1>
-        <p class="muted">題型固定為你提供的類型：<code>a² - (bm+cn)²</code>。可生成 1-100 題，多項選擇作答。交卷後，答錯題目會顯示計算方法。</p>
+        <h1>同類題練習（MC）</h1>
+        <p class="muted">支援兩種題型，同樣可生成 1-100 題、多項選擇作答、交卷批改，答錯會顯示計算方法。</p>
         <div class="controls">
+          <select id="topic" aria-label="題型選擇">
+            <option value="factor">平方差因式分解：a² - (bm+cn)²</option>
+            <option value="quadratic-k">二次方程與參數： (x-pk)² = qk²</option>
+          </select>
           <input id="count" type="number" min="1" max="100" value="10" aria-label="題數（1-100）" />
           <button id="genBtn">生成題目</button>
           <button id="submitBtn" class="secondary">交卷批改</button>
@@ -56,6 +58,7 @@
     </main>
 
     <script>
+      const $topic = document.getElementById('topic');
       const $count = document.getElementById('count');
       const $genBtn = document.getElementById('genBtn');
       const $submitBtn = document.getElementById('submitBtn');
@@ -66,6 +69,7 @@
       let quiz = [];
 
       function randint(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+      function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
       function shuffle(arr) {
         const a = [...arr];
         for (let i = a.length - 1; i > 0; i--) {
@@ -75,41 +79,66 @@
         return a;
       }
 
-      function buildQuestion(i) {
+      function buildFactorQuestion(i) {
         const a = randint(4, 18);
         const b = randint(2, 9);
         const c = randint(2, 9);
-
         const expr = `${a*a} - (${b}m + ${c}n)<sup>2</sup>`;
         const exprPlain = `${a*a} - (${b}m + ${c}n)^2`;
-        const correct = `(${a} + ${b}m + ${c}n)(${a} - ${b}m - ${c}n)`;
 
+        const correct = `(${a} + ${b}m + ${c}n)(${a} - ${b}m - ${c}n)`;
         const wrong1 = `(${a} + ${b}m + ${c}n)(${a} - ${b}m + ${c}n)`;
         const wrong2 = `(${a} + ${b}m - ${c}n)(${a} - ${b}m - ${c}n)`;
         const wrong3 = `(${a} + ${b}m - ${c}n)(${a} - ${b}m + ${c}n)`;
 
-        const optionsRaw = [
-          { key: 'A', text: correct, ok: true },
-          { key: 'B', text: wrong1, ok: false },
-          { key: 'C', text: wrong2, ok: false },
-          { key: 'D', text: wrong3, ok: false }
-        ];
+        const options = shuffle([
+          { text: correct, ok: true },
+          { text: wrong1, ok: false },
+          { text: wrong2, ok: false },
+          { text: wrong3, ok: false }
+        ]).map((o, idx) => ({ ...o, label: 'ABCD'[idx] }));
 
-        const options = shuffle(optionsRaw).map((o, idx) => ({ ...o, label: 'ABCD'[idx] }));
-        const answerLabel = options.find(o => o.ok).label;
         const method = `用平方差公式：x² - y² = (x+y)(x-y)。\n這題 x=${a}，y=(${b}m+${c}n)，\n所以 ${exprPlain} = (${a}+${b}m+${c}n)(${a}-${b}m-${c}n)。`;
-
-        return { id: i, expr, options, answerLabel, method };
+        return { id: i, stem: `因式分解：${expr}`, options, answerLabel: options.find(o => o.ok).label, method };
       }
 
-      function renderQuiz() {
+      function buildQuadraticKQuestion(i) {
+        const p = randint(2, 6);
+        const q = pick([1, 4, 9, 16]);
+        const s = Math.sqrt(q);
+        const r1 = p + s;
+        const r2 = p - s;
+
+        const stem = `設 k 為常數，解方程：(x - ${p}k)<sup>2</sup> = ${q}k<sup>2</sup>。`;
+        const c1 = `x = ${r1}k`; // correct if r1==r2 when q=0 not here
+        const c2 = `x = ${r2}k`;
+        const c3 = `x = ${r1}k 或 x = ${r2}k`;
+        const c4 = `x = -${r1}k 或 x = ${r2}k`;
+
+        const options = shuffle([
+          { text: c1, ok: false },
+          { text: c2, ok: false },
+          { text: c3, ok: true },
+          { text: c4, ok: false }
+        ]).map((o, idx) => ({ ...o, label: 'ABCD'[idx] }));
+
+        const method = `兩邊開方：x - ${p}k = ±${s}k\n所以 x = (${p}±${s})k\n即 x = ${r1}k 或 x = ${r2}k。`;
+        return { id: i, stem, options, answerLabel: options.find(o => o.ok).label, method };
+      }
+
+      function buildQuestion(i, topic) {
+        return topic === 'quadratic-k' ? buildQuadraticKQuestion(i) : buildFactorQuestion(i);
+      }
+
+      function renderQuiz(topicText) {
         if (!quiz.length) {
           $questions.innerHTML = '<p class="muted">請先按「生成題目」。</p>';
           return;
         }
-        $questions.innerHTML = quiz.map(q => `
+
+        $questions.innerHTML = `<p class="muted">目前題型：${topicText}</p>` + quiz.map(q => `
           <div class="q" data-id="${q.id}">
-            <h3>${q.id}. 因式分解：${q.expr}</h3>
+            <h3>${q.id}. ${q.stem}</h3>
             ${q.options.map(opt => `
               <label class="opt">
                 <input type="radio" name="q-${q.id}" value="${opt.label}">
@@ -127,9 +156,12 @@
         if (n > 100) n = 100;
         $count.value = n;
 
-        quiz = Array.from({ length: n }, (_, idx) => buildQuestion(idx + 1));
-        $summary.textContent = `已生成 ${n} 題，請作答後按「交卷批改」。`;
-        renderQuiz();
+        const topic = $topic.value;
+        const topicText = $topic.options[$topic.selectedIndex].text;
+        quiz = Array.from({ length: n }, (_, idx) => buildQuestion(idx + 1, topic));
+
+        $summary.textContent = `已生成 ${n} 題（${topicText}），請作答後按「交卷批改」。`;
+        renderQuiz(topicText);
       }
 
       function grade() {
@@ -165,7 +197,7 @@
 
         const total = quiz.length;
         const wrong = total - correct;
-        $summary.textContent = `完成批改：${correct}/${total} 正確（錯 ${wrong} 題；已作答 ${answered} 題）。`; 
+        $summary.textContent = `完成批改：${correct}/${total} 正確（錯 ${wrong} 題；已作答 ${answered} 題）。`;
       }
 
       function resetResult() {
