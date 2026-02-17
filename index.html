@@ -230,11 +230,12 @@
         const min = values.reduce((m, v) => (v.value < m.value ? v : m), values[0]);
         const options = values.map((v, idx) => ({ label: 'ABCD'[idx], text: v.text, ok: v.key === min.key }));
 
-        const substituteMethod = `【比較最小值技巧】<br>1) 先判正負：A 為偶次方，一定是正數；B、C、D 也都是正數（負次方/分數次方都 > 0）。<br>2) 比較誰最接近 0：<br>- B = 1/${b}<sup>${oddExp}</sup>，極小；<br>- C,D 是小於 1 的分數次方，也會變小，但通常沒 B 這麼小。<br>3) 所以最小值是 ${min.key}。`;
+        const scale = 100;
+        const substituteMethod = `【次方縮小法（除 10 的次方）】<br>本題用除 10<sup>2</sup>（即除 ${scale}）縮小次方比較：<br>- A: (-${a})<sup>${evenExp}</sup> → (-${a})<sup>${(evenExp/scale).toFixed(2)}</sup><br>- B: ${b}<sup>-${oddExp}</sup> → ${b}<sup>${(-oddExp/scale).toFixed(2)}</sup><br>- C: (${cNum}/${cDen})<sup>${oddExp}</sup> → (${cNum}/${cDen})<sup>${(oddExp/scale).toFixed(2)}</sup><br>- D: (${dNum}/${dDen})<sup>${evenExp}</sup> → (${dNum}/${dDen})<sup>${(evenExp/scale).toFixed(2)}</sup><br>縮小後比較：負次方（B）代表倒數，最接近 0，故最小是 ${min.key}。`;
 
-        const algebraMethod = `【代數技巧】<br>把每個選項改寫成「正數 × 指數型」：<br>A=(-${a})<sup>${evenExp}</sup> > 1（很大）<br>B=${b}<sup>-${oddExp}</sup>=1/${b}<sup>${oddExp}</sup>（極小）<br>C=(${cNum}/${cDen})<sup>${oddExp}</sup>，D=(${dNum}/${dDen})<sup>${evenExp}</sup>（介乎 0 與 1）<br>因此最小是 ${min.key}。`;
+        const algebraMethod = `【次方縮小法（除 10 的次方）】<br>把各選項次方同除 10<sup>2</sup> 後再比較：<br>B 保持負次方（倒數型），而 A 為大於 1 的偶次方型，C、D 為 0 到 1 之間的正次方型。<br>所以最小值為 ${min.key}。`;
 
-        return { id: i, stem: 'Which of the following is the least?', options, answerLabel: min.key, algebraMethod, substituteMethod };
+        return { id: i, stem: '下列哪一個最小？', options, answerLabel: min.key, algebraMethod, substituteMethod };
       }
 
       function buildQuestion(i, topic) {
