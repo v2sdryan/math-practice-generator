@@ -111,9 +111,9 @@
           { text: `(${a} + ${b}m - ${c}n)(${a} - ${b}m + ${c}n)`, ok: false, valAt11: (a + b - c) * (a - b + c) }
         ]).map((o, idx) => ({ ...o, label: 'ABCD'[idx] }));
 
-        const algebraMethod = `【代數技巧】設 A=${a}，B=${b}m+${c}n。\n原式 = A²-B²。\n用恆等式 A²-B²=(A+B)(A-B)，\n得 (${a}+${b}m+${c}n)(${a}-${b}m-${c}n)。`;
+        const algebraMethod = `【代數技巧】設 A=${a}，B=${b}m+${c}n。<br>原式 = A<sup>2</sup>-B<sup>2</sup>。<br>用恆等式 A<sup>2</sup>-B<sup>2</sup>=(A+B)(A-B)，<br>得 (${a}+${b}m+${c}n)(${a}-${b}m-${c}n)。`;
         const substituteLines = options.map(o => `${o.label}: 代 m=1,n=1，左式值 ${o.valAt11}${o.valAt11 === originalAt11 ? ' = 原式值' : ' ≠ 原式值'}`);
-        const substituteMethod = `【代入選項法】先代 m=1,n=1。\n原式 ${exprPlain} = ${originalAt11}。\n${substituteLines.join('\n')}\n只有與原式值相同的選項正確。`;
+        const substituteMethod = `【代入選項法】先代 m=1,n=1。<br>原式 ${exprPlain} = ${originalAt11}。<br>${substituteLines.join('<br>')}<br>只有與原式值相同的選項正確。`;
 
         return { id: i, stem: `因式分解：${expr}`, options, answerLabel: options.find(o => o.ok).label, algebraMethod, substituteMethod };
       }
@@ -134,12 +134,12 @@
           { text: `x = -${r1}k 或 x = ${r2}k`, ok: false, roots: [-r1, r2] }
         ]).map((o, idx) => ({ ...o, label: 'ABCD'[idx] }));
 
-        const algebraMethod = `【代數技巧】\n(x-${p}k)²=${q}k² ⇒ x-${p}k=±${s}k\n所以 x=(${p}±${s})k，即 x=${r1}k 或 x=${r2}k。`;
+        const algebraMethod = `【代數技巧】<br>(x-${p}k)<sup>2</sup>=${q}k<sup>2</sup> ⇒ x-${p}k=±${s}k<br>所以 x=(${p}±${s})k，即 x=${r1}k 或 x=${r2}k。`;
         const subLines = options.map(o => {
           const check = o.roots.map(v => `(x=${v}k): (${v}-${p})² ${((v-p)*(v-p)===q)?'=':'≠'} ${q}`).join('； ');
           return `${o.label}: ${check}`;
         });
-        const substituteMethod = `【代入選項法】先令 k=1，方程變成 (x-${p})²=${q}。\n${subLines.join('\n')}\n同時符合方程的根組合為正確選項。`;
+        const substituteMethod = `【代入選項法】先令 k=1，方程變成 (x-${p})<sup>2</sup>=${q}。<br>${subLines.join('<br>')}<br>同時符合方程的根組合為正確選項。`;
 
         return { id: i, stem, options, answerLabel: options.find(o => o.ok).label, algebraMethod, substituteMethod };
       }
@@ -152,7 +152,7 @@
           { a: 16, b: 25, base: 10, pa: 4, pb: 2 }
         ]);
 
-        const t = randint(8, 60);
+        const t = pick([10, 20, 30, 40, 50, 60, 70, 80, 90, 100]);
         const z = randint(1, 6);
         const A = pack.pb * t * z;
         const B = pack.pa * t * z;
@@ -167,16 +167,16 @@
           { text: `${pack.base}<sup>${Math.max(1, k - t)}</sup>`, ok: false, exp: Math.max(1, k - t) }
         ]).map((o, idx) => ({ ...o, label: 'ABCD'[idx] }));
 
-        const s = t;
+        const s = 10;
         const scaledA = A / s;
         const scaledB = B / s;
         const targetScaled = k / s;
         const compareLines = options.map(o => {
           if (o.exp == null) return `${o.label}: 不是同底 ${pack.base} 的標準形式，先排除。`;
-          return `${o.label}: ${pack.base}<sup>${o.exp}</sup> → 縮放後 ${pack.base}<sup>${(o.exp / s).toFixed(2)}</sup>`;
+          return `${o.label}: ${pack.base}<sup>${o.exp}</sup> → 除 10 的次方後 ${pack.base}<sup>${(o.exp / s).toFixed(2)}</sup>`;
         });
 
-        const substituteMethod = `【次方等比例縮放法】\n把全部次方同除 ${s}（比例不變）：\n原式 ${pack.a}<sup>${A}</sup>·${pack.b}<sup>${B}</sup> → ${pack.a}<sup>${scaledA}</sup>·${pack.b}<sup>${scaledB}</sup> = ${pack.base}<sup>${targetScaled}</sup>。\n再把選項次方同除 ${s} 比較最吻合者。\n${compareLines.join('\n')}`;
+        const substituteMethod = `【次方等比例縮放法】<br>把全部次方同除 10（即除 10<sup>1</sup>，比例不變）：<br>原式 ${pack.a}<sup>${A}</sup>·${pack.b}<sup>${B}</sup> → ${pack.a}<sup>${scaledA}</sup>·${pack.b}<sup>${scaledB}</sup> = ${pack.base}<sup>${targetScaled}</sup>。<br>再把選項次方同除 10 比較最吻合者。<br>${compareLines.join('<br>')}`;
 
         const algebraMethod = `【代數技巧】\n${pack.a}=2<sup>${pack.pa}</sup>，${pack.b}=5<sup>${pack.pb}</sup>。\n原式 = 2<sup>${pack.pa * A}</sup>·5<sup>${pack.pb * B}</sup>。\n依題目構造可合併成 (2·5)<sup>${k}</sup> = ${pack.base}<sup>${k}</sup>。`;
 
@@ -241,7 +241,7 @@
 
           if (!checked) {
             box.classList.add('bad');
-            box.textContent = `未作答。正確答案：${q.answerLabel}`;
+            box.innerHTML = `未作答。正確答案：${q.answerLabel}`;
             continue;
           }
 
@@ -249,11 +249,11 @@
           if (checked.value === q.answerLabel) {
             correct++;
             box.classList.add('ok');
-            box.textContent = `✅ 正確（答案：${q.answerLabel}）`;
+            box.innerHTML = `✅ 正確（答案：${q.answerLabel}）`;
           } else {
             box.classList.add('bad');
             const methodText = $methodMode.value === 'algebra' ? q.algebraMethod : q.substituteMethod;
-            box.textContent = `❌ 錯誤，你選 ${checked.value}；正確答案：${q.answerLabel}\n${methodText}`;
+            box.innerHTML = `❌ 錯誤，你選 ${checked.value}；正確答案：${q.answerLabel}<br>${methodText}`;
           }
         }
 
