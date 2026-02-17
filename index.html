@@ -101,7 +101,7 @@
           { text: wrong3, ok: false }
         ]).map((o, idx) => ({ ...o, label: 'ABCD'[idx] }));
 
-        const method = `用平方差公式：x² - y² = (x+y)(x-y)。\n這題 x=${a}，y=(${b}m+${c}n)，\n所以 ${exprPlain} = (${a}+${b}m+${c}n)(${a}-${b}m-${c}n)。`;
+        const method = `【代數技巧】設 A=${a}，B=${b}m+${c}n。\n原式 = A²-B²。\n用恆等式 A²-B²=(A+B)(A-B)，\n得 (${a}+${b}m+${c}n)(${a}-${b}m-${c}n)。\n（技巧：先用代號 A、B 取代複雜式，再套恆等式）`;
         return { id: i, stem: `因式分解：${expr}`, options, answerLabel: options.find(o => o.ok).label, method };
       }
 
@@ -125,7 +125,7 @@
           { text: c4, ok: false }
         ]).map((o, idx) => ({ ...o, label: 'ABCD'[idx] }));
 
-        const method = `兩邊開方：x - ${p}k = ±${s}k\n所以 x = (${p}±${s})k\n即 x = ${r1}k 或 x = ${r2}k。`;
+        const method = `【代數技巧】先把平方方程轉成「二項式=±常數」：\n(x-${p}k)²=${q}k² ⇒ x-${p}k=±${s}k。\n再分兩個線性方程：\n(1) x-${p}k=${s}k ⇒ x=${r1}k\n(2) x-${p}k=-${s}k ⇒ x=${r2}k\n故 x=${r1}k 或 x=${r2}k。\n（技巧：平方方程先拆成 ± 兩條一次方程）`;
         return { id: i, stem, options, answerLabel: options.find(o => o.ok).label, method };
       }
 
