@@ -20,6 +20,9 @@
       .opt .opt-text { display:block; white-space:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; font-size:15px; }
       .controls { display:grid; grid-template-columns: 1.2fr .8fr 1fr auto auto auto; gap:10px; align-items:center; }
       .controls input,.controls select { width:100%; min-width:90px; }
+      .hidden-after-generate { display:block; }
+      .collapsed .hidden-after-generate { display:none !important; }
+      .collapsed .controls { grid-template-columns: 1fr 1fr; }
       @media (max-width: 700px) {
         .controls { grid-template-columns: 1fr; }
         .controls .full { grid-column: 1 / -1; }
@@ -38,23 +41,23 @@
   </head>
   <body>
     <main class="wrap">
-      <section class="card sticky">
+      <section class="card sticky" id="controlCard">
         <h1>同類題練習（MC）</h1>
-        <p class="muted">支援兩種題型，同樣可生成 1-100 題、多項選擇作答、交卷批改，答錯會顯示計算方法。</p>
+        <p class="muted hidden-after-generate">支援兩種題型，同樣可生成 1-100 題、多項選擇作答、交卷批改，答錯會顯示計算方法。</p>
         <div class="controls">
-          <select id="topic" aria-label="題型選擇">
+          <select id="topic" class="hidden-after-generate" aria-label="題型選擇">
             <option value="factor">平方差因式分解：a² - (bm+cn)²</option>
             <option value="quadratic-k">二次方程與參數： (x-pk)² = qk²</option>
           </select>
-          <input id="count" type="number" min="1" max="100" value="10" aria-label="題數（1-100）" />
-          <select id="methodMode" aria-label="解題模式">
+          <input id="count" class="hidden-after-generate" type="number" min="1" max="100" value="10" aria-label="題數（1-100）" />
+          <select id="methodMode" class="hidden-after-generate" aria-label="解題模式">
             <option value="substitute" selected>解題模式：代入選項法</option>
             <option value="algebra">解題模式：代數技巧</option>
           </select>
-          <button id="genBtn">生成題目</button>
+          <button id="genBtn" class="hidden-after-generate">生成題目</button>
           <button id="submitBtn" class="secondary">交卷批改</button>
           <button id="resetBtn" class="secondary">清除結果</button>
-          <div class="muted full">題數（1-100）</div>
+          <div class="muted full hidden-after-generate">題數（1-100）</div>
         </div>
         <p id="summary" class="summary"></p>
       </section>
@@ -65,6 +68,7 @@
     </main>
 
     <script>
+      const $controlCard = document.getElementById('controlCard');
       const $topic = document.getElementById('topic');
       const $count = document.getElementById('count');
       const $methodMode = document.getElementById('methodMode');
@@ -171,6 +175,7 @@
 
         const modeText = $methodMode.value === 'algebra' ? '代數技巧' : '代入選項法';
         $summary.textContent = `已生成 ${n} 題（${topicText}），解題模式：${modeText}。請作答後按「交卷批改」。`;
+        $controlCard.classList.add('collapsed');
         renderQuiz(topicText);
       }
 
