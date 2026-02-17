@@ -21,8 +21,10 @@
       .controls { display:grid; grid-template-columns: 1.2fr .8fr 1fr auto auto auto; gap:10px; align-items:center; }
       .controls input,.controls select { width:100%; min-width:90px; }
       .hidden-after-generate { display:block; }
+      .show-after-generate { display:none; }
       .collapsed .hidden-after-generate { display:none !important; }
-      .collapsed .controls { grid-template-columns: 1fr 1fr; }
+      .collapsed .show-after-generate { display:inline-block; }
+      .collapsed .controls { grid-template-columns: 1fr 1fr 1fr; }
       @media (max-width: 700px) {
         .controls { grid-template-columns: 1fr; }
         .controls .full { grid-column: 1 / -1; }
@@ -57,6 +59,7 @@
           <button id="genBtn" class="hidden-after-generate">生成題目</button>
           <button id="submitBtn" class="secondary">交卷批改</button>
           <button id="resetBtn" class="secondary">清除結果</button>
+          <button id="backBtn" class="secondary show-after-generate">返回開始版面</button>
           <div class="muted full hidden-after-generate">題數（1-100）</div>
         </div>
         <p id="summary" class="summary"></p>
@@ -75,6 +78,7 @@
       const $genBtn = document.getElementById('genBtn');
       const $submitBtn = document.getElementById('submitBtn');
       const $resetBtn = document.getElementById('resetBtn');
+      const $backBtn = document.getElementById('backBtn');
       const $questions = document.getElementById('questions');
       const $summary = document.getElementById('summary');
 
@@ -229,9 +233,15 @@
         if (quiz.length) $summary.textContent = `已清除作答，可重新練習。`;
       }
 
+      function backToStart() {
+        $controlCard.classList.remove('collapsed');
+        $summary.textContent = '已返回開始版面，可重新選擇題型與設定。';
+      }
+
       $genBtn.addEventListener('click', generate);
       $submitBtn.addEventListener('click', grade);
       $resetBtn.addEventListener('click', resetResult);
+      $backBtn.addEventListener('click', backToStart);
     </script>
   </body>
 </html>
