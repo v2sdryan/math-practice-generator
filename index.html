@@ -18,7 +18,7 @@
       .opt { display:flex; align-items:flex-start; gap:10px; margin:8px 0; }
       .opt input { width:auto; margin-top:2px; }
       .opt .opt-text { display:block; white-space:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; font-size:15px; }
-      .controls { display:grid; grid-template-columns: 1.2fr .8fr auto auto auto; gap:10px; align-items:center; }
+      .controls { display:grid; grid-template-columns: 1.2fr .8fr 1fr auto auto auto; gap:10px; align-items:center; }
       .controls input,.controls select { width:100%; min-width:90px; }
       @media (max-width: 700px) {
         .controls { grid-template-columns: 1fr; }
@@ -47,6 +47,10 @@
             <option value="quadratic-k">二次方程與參數： (x-pk)² = qk²</option>
           </select>
           <input id="count" type="number" min="1" max="100" value="10" aria-label="題數（1-100）" />
+          <select id="methodMode" aria-label="解題模式">
+            <option value="substitute" selected>解題模式：代入選項法</option>
+            <option value="algebra">解題模式：代數技巧</option>
+          </select>
           <button id="genBtn">生成題目</button>
           <button id="submitBtn" class="secondary">交卷批改</button>
           <button id="resetBtn" class="secondary">清除結果</button>
@@ -63,6 +67,7 @@
     <script>
       const $topic = document.getElementById('topic');
       const $count = document.getElementById('count');
+      const $methodMode = document.getElementById('methodMode');
       const $genBtn = document.getElementById('genBtn');
       const $submitBtn = document.getElementById('submitBtn');
       const $resetBtn = document.getElementById('resetBtn');
@@ -89,20 +94,19 @@
         const expr = `${a*a} - (${b}m + ${c}n)<sup>2</sup>`;
         const exprPlain = `${a*a} - (${b}m + ${c}n)^2`;
 
-        const correct = `(${a} + ${b}m + ${c}n)(${a} - ${b}m - ${c}n)`;
-        const wrong1 = `(${a} + ${b}m + ${c}n)(${a} - ${b}m + ${c}n)`;
-        const wrong2 = `(${a} + ${b}m - ${c}n)(${a} - ${b}m - ${c}n)`;
-        const wrong3 = `(${a} + ${b}m - ${c}n)(${a} - ${b}m + ${c}n)`;
-
+        const originalAt11 = a*a - (b + c) * (b + c);
         const options = shuffle([
-          { text: correct, ok: true },
-          { text: wrong1, ok: false },
-          { text: wrong2, ok: false },
-          { text: wrong3, ok: false }
+          { text: `(${a} + ${b}m + ${c}n)(${a} - ${b}m - ${c}n)`, ok: true, valAt11: (a + b + c) * (a - b - c) },
+          { text: `(${a} + ${b}m + ${c}n)(${a} - ${b}m + ${c}n)`, ok: false, valAt11: (a + b + c) * (a - b + c) },
+          { text: `(${a} + ${b}m - ${c}n)(${a} - ${b}m - ${c}n)`, ok: false, valAt11: (a + b - c) * (a - b - c) },
+          { text: `(${a} + ${b}m - ${c}n)(${a} - ${b}m + ${c}n)`, ok: false, valAt11: (a + b - c) * (a - b + c) }
         ]).map((o, idx) => ({ ...o, label: 'ABCD'[idx] }));
 
-        const method = `【代數技巧】設 A=${a}，B=${b}m+${c}n。\n原式 = A²-B²。\n用恆等式 A²-B²=(A+B)(A-B)，\n得 (${a}+${b}m+${c}n)(${a}-${b}m-${c}n)。\n（技巧：先用代號 A、B 取代複雜式，再套恆等式）`;
-        return { id: i, stem: `因式分解：${expr}`, options, answerLabel: options.find(o => o.ok).label, method };
+        const algebraMethod = `【代數技巧】設 A=${a}，B=${b}m+${c}n。\n原式 = A²-B²。\n用恆等式 A²-B²=(A+B)(A-B)，\n得 (${a}+${b}m+${c}n)(${a}-${b}m-${c}n)。`;
+        const substituteLines = options.map(o => `${o.label}: 代 m=1,n=1，左式值 ${o.valAt11}${o.valAt11 === originalAt11 ? ' = 原式值' : ' ≠ 原式值'}`);
+        const substituteMethod = `【代入選項法】先代 m=1,n=1。\n原式 ${exprPlain} = ${originalAt11}。\n${substituteLines.join('\n')}\n只有與原式值相同的選項正確。`;
+
+        return { id: i, stem: `因式分解：${expr}`, options, answerLabel: options.find(o => o.ok).label, algebraMethod, substituteMethod };
       }
 
       function buildQuadraticKQuestion(i) {
@@ -113,20 +117,22 @@
         const r2 = p - s;
 
         const stem = `設 k 為常數，解方程：(x - ${p}k)<sup>2</sup> = ${q}k<sup>2</sup>。`;
-        const c1 = `x = ${r1}k`; // correct if r1==r2 when q=0 not here
-        const c2 = `x = ${r2}k`;
-        const c3 = `x = ${r1}k 或 x = ${r2}k`;
-        const c4 = `x = -${r1}k 或 x = ${r2}k`;
 
         const options = shuffle([
-          { text: c1, ok: false },
-          { text: c2, ok: false },
-          { text: c3, ok: true },
-          { text: c4, ok: false }
+          { text: `x = ${r1}k`, ok: false, roots: [r1] },
+          { text: `x = ${r2}k`, ok: false, roots: [r2] },
+          { text: `x = ${r1}k 或 x = ${r2}k`, ok: true, roots: [r1, r2] },
+          { text: `x = -${r1}k 或 x = ${r2}k`, ok: false, roots: [-r1, r2] }
         ]).map((o, idx) => ({ ...o, label: 'ABCD'[idx] }));
 
-        const method = `【代數技巧】先把平方方程轉成「二項式=±常數」：\n(x-${p}k)²=${q}k² ⇒ x-${p}k=±${s}k。\n再分兩個線性方程：\n(1) x-${p}k=${s}k ⇒ x=${r1}k\n(2) x-${p}k=-${s}k ⇒ x=${r2}k\n故 x=${r1}k 或 x=${r2}k。\n（技巧：平方方程先拆成 ± 兩條一次方程）`;
-        return { id: i, stem, options, answerLabel: options.find(o => o.ok).label, method };
+        const algebraMethod = `【代數技巧】\n(x-${p}k)²=${q}k² ⇒ x-${p}k=±${s}k\n所以 x=(${p}±${s})k，即 x=${r1}k 或 x=${r2}k。`;
+        const subLines = options.map(o => {
+          const check = o.roots.map(v => `(x=${v}k): (${v}-${p})² ${((v-p)*(v-p)===q)?'=':'≠'} ${q}`).join('； ');
+          return `${o.label}: ${check}`;
+        });
+        const substituteMethod = `【代入選項法】先令 k=1，方程變成 (x-${p})²=${q}。\n${subLines.join('\n')}\n同時符合方程的根組合為正確選項。`;
+
+        return { id: i, stem, options, answerLabel: options.find(o => o.ok).label, algebraMethod, substituteMethod };
       }
 
       function buildQuestion(i, topic) {
@@ -163,7 +169,8 @@
         const topicText = $topic.options[$topic.selectedIndex].text;
         quiz = Array.from({ length: n }, (_, idx) => buildQuestion(idx + 1, topic));
 
-        $summary.textContent = `已生成 ${n} 題（${topicText}），請作答後按「交卷批改」。`;
+        const modeText = $methodMode.value === 'algebra' ? '代數技巧' : '代入選項法';
+        $summary.textContent = `已生成 ${n} 題（${topicText}），解題模式：${modeText}。請作答後按「交卷批改」。`;
         renderQuiz(topicText);
       }
 
@@ -194,7 +201,8 @@
             box.textContent = `✅ 正確（答案：${q.answerLabel}）`;
           } else {
             box.classList.add('bad');
-            box.textContent = `❌ 錯誤，你選 ${checked.value}；正確答案：${q.answerLabel}\n${q.method}`;
+            const methodText = $methodMode.value === 'algebra' ? q.algebraMethod : q.substituteMethod;
+            box.textContent = `❌ 錯誤，你選 ${checked.value}；正確答案：${q.answerLabel}\n${methodText}`;
           }
         }
 
