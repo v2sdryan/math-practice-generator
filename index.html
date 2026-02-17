@@ -51,6 +51,7 @@
             <option value="factor">平方差因式分解：a² - (bm+cn)²</option>
             <option value="quadratic-k">二次方程與參數： (x-pk)² = qk²</option>
             <option value="power-scale">指數題：次方等比例縮放法</option>
+            <option value="least-compare">指數比較：Which is the least?</option>
           </select>
           <input id="count" class="hidden-after-generate" type="number" min="1" max="100" value="10" aria-label="題數（1-100）" />
           <select id="methodMode" class="hidden-after-generate" aria-label="解題模式">
@@ -204,9 +205,42 @@
         return { id: i, stem, options, answerLabel: options.find(o => o.ok).label, algebraMethod, substituteMethod };
       }
 
+      function buildLeastCompareQuestion(i) {
+        const oddExp = pick([101, 203, 305, 407, 509, 611, 713, 815]);
+        const evenExp = oddExp + 1;
+        const a = randint(200, 600);
+        const b = randint(200, 600);
+        const cNum = randint(1, 5);
+        const cDen = randint(6, 12);
+        const dNum = randint(2, 6);
+        const dDen = randint(7, 13);
+
+        const A = `(-${a})<sup>${evenExp}</sup>`;
+        const B = `${b}<sup>-${oddExp}</sup>`;
+        const C = `(${cNum}/${cDen})<sup>${oddExp}</sup>`;
+        const D = `(${dNum}/${dDen})<sup>${evenExp}</sup>`;
+
+        const values = [
+          { key: 'A', text: A, value: Math.pow(-a, evenExp) },
+          { key: 'B', text: B, value: Math.pow(b, -oddExp) },
+          { key: 'C', text: C, value: Math.pow(cNum / cDen, oddExp) },
+          { key: 'D', text: D, value: Math.pow(dNum / dDen, evenExp) }
+        ];
+
+        const min = values.reduce((m, v) => (v.value < m.value ? v : m), values[0]);
+        const options = values.map((v, idx) => ({ label: 'ABCD'[idx], text: v.text, ok: v.key === min.key }));
+
+        const substituteMethod = `【比較最小值技巧】<br>1) 先判正負：A 為偶次方，一定是正數；B、C、D 也都是正數（負次方/分數次方都 > 0）。<br>2) 比較誰最接近 0：<br>- B = 1/${b}<sup>${oddExp}</sup>，極小；<br>- C,D 是小於 1 的分數次方，也會變小，但通常沒 B 這麼小。<br>3) 所以最小值是 ${min.key}。`;
+
+        const algebraMethod = `【代數技巧】<br>把每個選項改寫成「正數 × 指數型」：<br>A=(-${a})<sup>${evenExp}</sup> > 1（很大）<br>B=${b}<sup>-${oddExp}</sup>=1/${b}<sup>${oddExp}</sup>（極小）<br>C=(${cNum}/${cDen})<sup>${oddExp}</sup>，D=(${dNum}/${dDen})<sup>${evenExp}</sup>（介乎 0 與 1）<br>因此最小是 ${min.key}。`;
+
+        return { id: i, stem: 'Which of the following is the least?', options, answerLabel: min.key, algebraMethod, substituteMethod };
+      }
+
       function buildQuestion(i, topic) {
         if (topic === 'quadratic-k') return buildQuadraticKQuestion(i);
         if (topic === 'power-scale') return buildPowerScaleQuestion(i);
+        if (topic === 'least-compare') return buildLeastCompareQuestion(i);
         return buildFactorQuestion(i);
       }
 
