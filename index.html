@@ -152,9 +152,8 @@
           { a: 16, b: 25, base: 10, pa: 4, pb: 2 }
         ]);
 
-        const tinyMode = Math.random() < 0.4; // 40% 生成較細次方，觸發「乘 10/100/1000」
-        const t = tinyMode ? pick([0.1, 0.01, 0.001]) : pick([10, 20, 30, 40, 50, 60, 70, 80, 90, 100]);
-        const z = tinyMode ? randint(1, 9) / 10 : randint(1, 6);
+        const t = pick([10, 20, 30, 40, 50, 60, 70, 80, 90, 100]);
+        const z = randint(1, 6);
         const A = Number((pack.pb * t * z).toFixed(3));
         const B = Number((pack.pa * t * z).toFixed(3));
 
