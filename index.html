@@ -3,217 +3,176 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>數學同類題練習產生器</title>
+    <title>因式分解 MC 練習器</title>
     <style>
-      body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",sans-serif; background:#0b1020; color:#e5e7eb; }
-      .wrap{ max-width:960px; margin:24px auto; padding:20px; }
-      .card{ background:#121933; border:1px solid #243050; border-radius:14px; padding:16px; margin-bottom:14px; }
-      h1{ margin:0 0 8px; font-size:28px; }
-      .muted{ color:#9ca3af; font-size:14px; }
-      .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-      @media (max-width: 760px){ .grid{ grid-template-columns:1fr; } }
-      input,select,button,textarea{ width:100%; box-sizing:border-box; border-radius:10px; border:1px solid #334155; background:#0f172a; color:#e5e7eb; padding:10px; }
-      button{ background:#22c55e; color:#052e16; border:none; font-weight:700; cursor:pointer; }
-      button.secondary{ background:#334155; color:#e5e7eb; }
-      .row{ display:flex; gap:10px; align-items:center; }
-      .row > *{ flex:1; }
-      .checks label{ display:block; margin:6px 0; }
-      .out{ white-space:pre-wrap; line-height:1.7; font-size:15px; }
-      .badge{ display:inline-block; font-size:12px; background:#1e293b; border:1px solid #334155; border-radius:999px; padding:4px 10px; margin-right:6px; }
-      img.preview{ width:100%; max-height:240px; object-fit:contain; background:#0f172a; border-radius:10px; border:1px solid #334155; }
+      body { margin: 0; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",sans-serif; background:#0b1020; color:#e5e7eb; }
+      .wrap { max-width: 980px; margin: 24px auto; padding: 16px; }
+      .card { background:#121933; border:1px solid #243050; border-radius:14px; padding:16px; margin-bottom:14px; }
+      h1 { margin:0 0 8px; }
+      .muted { color:#9ca3af; font-size:14px; }
+      .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+      input, button { border-radius:10px; border:1px solid #334155; background:#0f172a; color:#e5e7eb; padding:10px; }
+      input { width:120px; }
+      button { cursor:pointer; border:none; background:#22c55e; color:#052e16; font-weight:700; }
+      button.secondary { background:#334155; color:#e5e7eb; }
+      .q { border:1px solid #334155; border-radius:12px; padding:12px; margin:10px 0; background:#0f172a; }
+      .q h3 { margin:0 0 10px; font-size:17px; }
+      .opt { display:block; margin:6px 0; }
+      .result { margin-top:8px; padding:8px; border-radius:8px; font-size:14px; }
+      .ok { background:#052e16; color:#86efac; }
+      .bad { background:#3f1d1d; color:#fca5a5; }
+      .hide { display:none; }
+      .sticky { position: sticky; top: 0; z-index: 10; }
+      .summary { font-weight:700; }
     </style>
   </head>
   <body>
     <main class="wrap">
-      <h1>數學同類題練習產生器</h1>
-      <p class="muted">上傳題目圖片 → 自動估算題型（可手動改）→ 設定題數（1-15）→ 產生練習（題目 / 答案 / 詳解）</p>
-
-      <section class="card grid">
-        <div>
-          <label>上傳題目圖片</label>
-          <input id="imageInput" type="file" accept="image/*" />
-          <p class="muted">支援 JPG / PNG。OCR 在你瀏覽器本地執行。</p>
-          <img id="preview" class="preview" alt="預覽" style="display:none"/>
+      <section class="card sticky">
+        <h1>同類題練習：平方差因式分解（MC）</h1>
+        <p class="muted">題型固定為你提供的類型：<code>a² - (bm+cn)²</code>。可生成 1-100 題，多項選擇作答。交卷後，答錯題目會顯示計算方法。</p>
+        <div class="row">
+          <label>題數（1-100）：</label>
+          <input id="count" type="number" min="1" max="100" value="10" />
+          <button id="genBtn">生成題目</button>
+          <button id="submitBtn" class="secondary">交卷批改</button>
+          <button id="resetBtn" class="secondary">清除結果</button>
         </div>
-        <div>
-          <label>OCR 文字（可手改）</label>
-          <textarea id="ocrText" rows="10" placeholder="OCR 結果會顯示於此..."></textarea>
-          <div class="row" style="margin-top:8px;">
-            <button id="ocrBtn" class="secondary">從圖片讀字（OCR）</button>
-            <button id="detectBtn" class="secondary">判斷題型</button>
-          </div>
-          <p id="topicHint" class="muted" style="margin-top:8px;">題型：未判斷</p>
-        </div>
+        <p id="summary" class="summary"></p>
       </section>
 
-      <section class="card grid">
-        <div>
-          <label>題型</label>
-          <select id="topic">
-            <option value="auto">自動判斷</option>
-            <option value="indices">指數運算</option>
-            <option value="factorization">因式分解 / 恆等式</option>
-            <option value="linear">一次方程</option>
-            <option value="quadratic">二次方程</option>
-            <option value="probability">概率 / 組合</option>
-          </select>
-        </div>
-        <div>
-          <label>題數（1-15）</label>
-          <input id="count" type="number" min="1" max="15" value="5" />
-        </div>
-      </section>
-
-      <section class="card checks">
-        <label><input type="checkbox" id="showQ" checked /> 只出題目</label>
-        <label><input type="checkbox" id="showA" checked /> 顯示答案</label>
-        <label><input type="checkbox" id="showS" checked /> 顯示詳解</label>
-        <div class="row" style="margin-top:10px;">
-          <button id="genBtn">產生練習</button>
-          <button id="copyBtn" class="secondary">複製結果</button>
-        </div>
-      </section>
-
-      <section class="card">
-        <div>
-          <span class="badge" id="usedTopic">題型：-</span>
-          <span class="badge" id="usedCount">題數：-</span>
-        </div>
-        <div id="output" class="out" style="margin-top:10px;">結果會顯示在這裡。</div>
+      <section id="questions" class="card">
+        <p class="muted">請先按「生成題目」。</p>
       </section>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script>
-      const imageInput = document.getElementById('imageInput');
-      const preview = document.getElementById('preview');
-      const ocrText = document.getElementById('ocrText');
-      const topic = document.getElementById('topic');
-      const count = document.getElementById('count');
-      const output = document.getElementById('output');
-      const usedTopic = document.getElementById('usedTopic');
-      const usedCount = document.getElementById('usedCount');
-      const topicHint = document.getElementById('topicHint');
+      const $count = document.getElementById('count');
+      const $genBtn = document.getElementById('genBtn');
+      const $submitBtn = document.getElementById('submitBtn');
+      const $resetBtn = document.getElementById('resetBtn');
+      const $questions = document.getElementById('questions');
+      const $summary = document.getElementById('summary');
 
-      let imageDataUrl = '';
+      let quiz = [];
 
-      imageInput.addEventListener('change', (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          imageDataUrl = reader.result;
-          preview.src = imageDataUrl;
-          preview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-      });
-
-      function detectTopicByText(text) {
-        const t = (text || '').toLowerCase();
-        if (/\^|x-\d|x\^-|3\^|指數|冪|power|indices/.test(t)) return 'indices';
-        if (/因式|factor|\(.*\)\(.*\)|a\^2-b\^2|恆等式/.test(t)) return 'factorization';
-        if (/二次|quadratic|x\^2/.test(t)) return 'quadratic';
-        if (/概率|probability|組合|permutation|combination/.test(t)) return 'probability';
-        return 'linear';
+      function randint(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+      function shuffle(arr) {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
       }
 
-      function topicName(v) {
-        return {
-          auto:'自動判斷', indices:'指數運算', factorization:'因式分解 / 恆等式',
-          linear:'一次方程', quadratic:'二次方程', probability:'概率 / 組合'
-        }[v] || v;
+      function buildQuestion(i) {
+        const a = randint(4, 18);
+        const b = randint(2, 9);
+        const c = randint(2, 9);
+
+        const expr = `${a*a} - (${b}m + ${c}n)^2`;
+        const correct = `(${a} + ${b}m + ${c}n)(${a} - ${b}m - ${c}n)`;
+
+        const wrong1 = `(${a} + ${b}m + ${c}n)(${a} - ${b}m + ${c}n)`;
+        const wrong2 = `(${a} + ${b}m - ${c}n)(${a} - ${b}m - ${c}n)`;
+        const wrong3 = `(${a} + ${b}m - ${c}n)(${a} - ${b}m + ${c}n)`;
+
+        const optionsRaw = [
+          { key: 'A', text: correct, ok: true },
+          { key: 'B', text: wrong1, ok: false },
+          { key: 'C', text: wrong2, ok: false },
+          { key: 'D', text: wrong3, ok: false }
+        ];
+
+        const options = shuffle(optionsRaw).map((o, idx) => ({ ...o, label: 'ABCD'[idx] }));
+        const answerLabel = options.find(o => o.ok).label;
+        const method = `用平方差公式：x² - y² = (x+y)(x-y)。\n這題 x=${a}，y=(${b}m+${c}n)，\n所以 ${expr} = (${a}+${b}m+${c}n)(${a}-${b}m-${c}n)。`;
+
+        return { id: i, expr, options, answerLabel, method };
       }
 
-      async function runOCR() {
-        if (!imageDataUrl) return alert('請先上傳圖片');
-        output.textContent = 'OCR 識別中，請稍候...';
-        const result = await Tesseract.recognize(imageDataUrl, 'eng+chi_tra');
-        ocrText.value = result.data.text || '';
-        output.textContent = 'OCR 完成。可按「判斷題型」或直接生成。';
-      }
-
-      function detectAndSetTopic() {
-        const guess = detectTopicByText(ocrText.value);
-        if (topic.value === 'auto') topic.value = guess;
-        topicHint.textContent = `題型判斷：${topicName(guess)}`;
-        return guess;
-      }
-
-      function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
-
-      function genProblem(kind, i){
-        if (kind === 'indices') {
-          const a = randInt(2,5), b = randInt(2,4), m = randInt(2,5), n = randInt(2,4);
-          const q = `(${a}x^${m})^${n} ÷ (${a}x^${b})^2 = ?`;
-          const coeffPow = n - 2;
-          const xPow = m*n - 2*b;
-          const ans = `${a}^${coeffPow}x^${xPow}`;
-          const sol = `\n(${a}x^${m})^${n}=${a}^${n}x^${m*n}；(${a}x^${b})^2=${a}^2x^${2*b}\n相除得 ${a}^(${n}-2)x^(${m*n}-${2*b})=${ans}`;
-          return { q, ans, sol };
+      function renderQuiz() {
+        if (!quiz.length) {
+          $questions.innerHTML = '<p class="muted">請先按「生成題目」。</p>';
+          return;
         }
-        if (kind === 'factorization') {
-          const p = randInt(3,12), qn = randInt(2,9);
-          const q = `${p*p} - (${qn}x)^2 因式分解為？`;
-          const ans = `(${p}-${qn}x)(${p}+${qn}x)`;
-          const sol = `平方差公式 a^2-b^2=(a-b)(a+b)，代 a=${p}, b=${qn}x 即得 ${ans}`;
-          return { q, ans, sol };
-        }
-        if (kind === 'quadratic') {
-          const r1 = randInt(1,6), r2 = randInt(1,6);
-          const b = -(r1+r2), c = r1*r2;
-          const q = `解方程：x^2 ${b>=0?'+':''}${b}x + ${c} = 0`;
-          const ans = `x=${r1} 或 x=${r2}`;
-          const sol = `找兩數乘積為 ${c}、和為 ${r1+r2}，所以 (x-${r1})(x-${r2})=0，故 ${ans}`;
-          return { q, ans, sol };
-        }
-        if (kind === 'probability') {
-          const good = randInt(2,8), bad = randInt(2,8);
-          const q = `袋中有 ${good} 粒紅球和 ${bad} 粒藍球，任取一球，抽到紅球的概率為？`;
-          const ans = `${good}/${good+bad}`;
-          const sol = `概率 = 有利結果 / 全部結果 = ${good}/(${good}+${bad}) = ${ans}`;
-          return { q, ans, sol };
-        }
-        const a = randInt(2,9), b = randInt(1,9), c = randInt(10,40);
-        const q = `解方程：${a}x + ${b} = ${c}`;
-        const x = (c-b)/a;
-        const ans = `x=${x}`;
-        const sol = `${a}x=${c}-${b}=${c-b}，所以 x=${c-b}/${a}=${x}`;
-        return { q, ans, sol };
+        $questions.innerHTML = quiz.map(q => `
+          <div class="q" data-id="${q.id}">
+            <h3>${q.id}. 因式分解：${q.expr}</h3>
+            ${q.options.map(opt => `
+              <label class="opt">
+                <input type="radio" name="q-${q.id}" value="${opt.label}"> ${opt.label}. ${opt.text}
+              </label>
+            `).join('')}
+            <div id="result-${q.id}" class="result hide"></div>
+          </div>
+        `).join('');
       }
 
       function generate() {
-        const showQ = document.getElementById('showQ').checked;
-        const showA = document.getElementById('showA').checked;
-        const showS = document.getElementById('showS').checked;
-        let n = parseInt(count.value || '5', 10);
+        let n = parseInt($count.value, 10);
         if (Number.isNaN(n) || n < 1) n = 1;
-        if (n > 15) n = 15;
+        if (n > 100) n = 100;
+        $count.value = n;
 
-        const guessed = detectTopicByText(ocrText.value);
-        const kind = topic.value === 'auto' ? guessed : topic.value;
-
-        const lines = [];
-        lines.push(`【同類練習】題型：${topicName(kind)}；題數：${n}`);
-        for (let i=1;i<=n;i++) {
-          const p = genProblem(kind, i);
-          if (showQ) lines.push(`\n${i}. ${p.q}`);
-          if (showA) lines.push(`答案：${p.ans}`);
-          if (showS) lines.push(`詳解：${p.sol}`);
-        }
-
-        usedTopic.textContent = `題型：${topicName(kind)}`;
-        usedCount.textContent = `題數：${n}`;
-        output.textContent = lines.join('\n');
+        quiz = Array.from({ length: n }, (_, idx) => buildQuestion(idx + 1));
+        $summary.textContent = `已生成 ${n} 題，請作答後按「交卷批改」。`;
+        renderQuiz();
       }
 
-      document.getElementById('ocrBtn').addEventListener('click', runOCR);
-      document.getElementById('detectBtn').addEventListener('click', detectAndSetTopic);
-      document.getElementById('genBtn').addEventListener('click', generate);
-      document.getElementById('copyBtn').addEventListener('click', async () => {
-        await navigator.clipboard.writeText(output.textContent);
-        alert('已複製');
-      });
+      function grade() {
+        if (!quiz.length) {
+          alert('請先生成題目');
+          return;
+        }
+
+        let answered = 0;
+        let correct = 0;
+
+        for (const q of quiz) {
+          const checked = document.querySelector(`input[name="q-${q.id}"]:checked`);
+          const box = document.getElementById(`result-${q.id}`);
+          box.classList.remove('hide', 'ok', 'bad');
+
+          if (!checked) {
+            box.classList.add('bad');
+            box.textContent = `未作答。正確答案：${q.answerLabel}`;
+            continue;
+          }
+
+          answered++;
+          if (checked.value === q.answerLabel) {
+            correct++;
+            box.classList.add('ok');
+            box.textContent = `✅ 正確（答案：${q.answerLabel}）`;
+          } else {
+            box.classList.add('bad');
+            box.textContent = `❌ 錯誤，你選 ${checked.value}；正確答案：${q.answerLabel}\n${q.method}`;
+          }
+        }
+
+        const total = quiz.length;
+        const wrong = total - correct;
+        $summary.textContent = `完成批改：${correct}/${total} 正確（錯 ${wrong} 題；已作答 ${answered} 題）。`; 
+      }
+
+      function resetResult() {
+        for (const q of quiz) {
+          const checked = document.querySelector(`input[name="q-${q.id}"]:checked`);
+          if (checked) checked.checked = false;
+          const box = document.getElementById(`result-${q.id}`);
+          if (box) {
+            box.className = 'result hide';
+            box.textContent = '';
+          }
+        }
+        if (quiz.length) $summary.textContent = `已清除作答，可重新練習。`;
+      }
+
+      $genBtn.addEventListener('click', generate);
+      $submitBtn.addEventListener('click', grade);
+      $resetBtn.addEventListener('click', resetResult);
     </script>
   </body>
 </html>
