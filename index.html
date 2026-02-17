@@ -80,7 +80,8 @@
         const b = randint(2, 9);
         const c = randint(2, 9);
 
-        const expr = `${a*a} - (${b}m + ${c}n)^2`;
+        const expr = `${a*a} - (${b}m + ${c}n)<sup>2</sup>`;
+        const exprPlain = `${a*a} - (${b}m + ${c}n)^2`;
         const correct = `(${a} + ${b}m + ${c}n)(${a} - ${b}m - ${c}n)`;
 
         const wrong1 = `(${a} + ${b}m + ${c}n)(${a} - ${b}m + ${c}n)`;
@@ -96,7 +97,7 @@
 
         const options = shuffle(optionsRaw).map((o, idx) => ({ ...o, label: 'ABCD'[idx] }));
         const answerLabel = options.find(o => o.ok).label;
-        const method = `用平方差公式：x² - y² = (x+y)(x-y)。\n這題 x=${a}，y=(${b}m+${c}n)，\n所以 ${expr} = (${a}+${b}m+${c}n)(${a}-${b}m-${c}n)。`;
+        const method = `用平方差公式：x² - y² = (x+y)(x-y)。\n這題 x=${a}，y=(${b}m+${c}n)，\n所以 ${exprPlain} = (${a}+${b}m+${c}n)(${a}-${b}m-${c}n)。`;
 
         return { id: i, expr, options, answerLabel, method };
       }
